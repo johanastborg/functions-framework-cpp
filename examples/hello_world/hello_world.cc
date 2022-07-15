@@ -12,14 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <google/cloud/functions/function.h>
+#include <google/cloud/functions/http_request.h>
+#include <google/cloud/functions/http_response.h>
+#include <nlohmann/json.hpp>
 
 namespace gcf = ::google::cloud::functions;
+namespace gcf2 = ::google::cloud::functions::v1_2
 
-gcf::Function HelloWorld() {
-  return gcf::MakeFunction([](gcf::HttpRequest const& /*request*/) {
-    return gcf::HttpResponse{}
-        .set_header("Content-Type", "text/plain")
-        .set_payload("Hello World\n");
-  });
+gcf::HttpResponse HelloWorld(gcf2 request) {
+  auto greeting = [r = std::move(request)] {
+    auto request_json = nlohmann::json::parse(r.payload(), nullptr, false);
+    if (request_json.count("name") && request_json["name"].is_string()) {
+      return "Hello " + request_json.value("name", "World") + "!";
+    }
+    return std::string("Hello World!");
+  };
+
+  return gcf::HttpResponse{}
+      .set_header("content-type", "text/plain")
+      .set_payload(greeting());
 }
