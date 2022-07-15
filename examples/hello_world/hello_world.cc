@@ -17,9 +17,9 @@
 #include <nlohmann/json.hpp>
 
 namespace gcf = ::google::cloud::functions;
-namespace gcf2 = ::google::cloud::functions::v1_2
+namespace gcf2 = ::google::cloud::functions::v1_2;
 
-gcf::HttpResponse HelloWorld(gcf2 request) {
+gcf::HttpResponse HelloWorld(gcf2::HttpRequest request) {
   auto greeting = [r = std::move(request)] {
     auto request_json = nlohmann::json::parse(r.payload(), nullptr, false);
     if (request_json.count("name") && request_json["name"].is_string()) {
